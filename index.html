@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Websocket</title>
+<style>
+    #log{
+        width: 90%;
+        min-height: 300px;
+        border:1px solid #ccc;
+        overflow: auto;
+        margin-bottom: 10px;
+        padding: 10px;
+		position:relative;
+        
+    }
+    #chatwindow{
+        margin: 0 auto;
+        padding: 10px;
+        border:3px solid #000;
+        width: 40%;
+    }
+    #typing{
+		position: absolute;
+		bottom: 0px;
+		font-style: italic;
+		font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
+    }
+</style>
+</head>
+<body>
+
+<h1>websocket</h1>
+<div id="chatwindow">
+<div id="log">
+    <div id="typing"></div>
+</div>
+<input type="text" name="sendmsg" id="sendmsg" placeholder="message">
+<input type="button" name="button" id="sendbutton" value="send">
+</div>
+<script>
+    var ws= new WebSocket("ws://localhost:5001");
+    var user = prompt('Enter your name? ');
+    var log= document.getElementById('log');
+	var typing= document.getElementById('typing');
+    ws.onopen = function(event){
+        var nameData= {
+            type:"name",
+            data:user
+        }
+        ws.send(JSON.stringify(nameData));
+        console.log('socket connected successfully');
+    };
+    ws.onmessage = function(event){
+        data = JSON.parse(event.data);
+		if(data.type == 'typing')
+        {
+          typing.innerHTML =  data.data;
+        }else{ 
+        log.innerHTML+= data.name +": "+ data.data +"</br>";
+		typing.innerHTML = "";
+		}
+    }
+    document.getElementById('sendbutton').addEventListener('click',function(){
+        var msg= document.getElementById('sendmsg').value;
+        var msgData = {
+            type:"message",
+            data:msg
+        }
+        ws.send(JSON.stringify(msgData));
+        log.innerHTML+= "you : "+ msg +"</br>"
+        document.getElementById('sendmsg').value='';
+    });
+	
+	document.getElementById('sendmsg').addEventListener('keyup',function(){
+	
+		var msgtype= user + ' is typing....' ;
+        var dataTyping = {
+            type:"typing",
+            data:msgtype
+        }
+        ws.send(JSON.stringify(dataTyping));
+    });
+</script>
+</body>
+</html>
